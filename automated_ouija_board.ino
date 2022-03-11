@@ -45,14 +45,13 @@ void loop()
     {"no", 22.00, 20.00}
   };
   
-  float arm1length = 49.2; // in mm
-  float arm2length = 36.0; // in mm
-
+  const float arm1length = 49.2; // in mm
+  const float arm2length = 36.0; // in mm
   const char string[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
   for(int i =0; i < strlen(string); i++ ) {
-    float x;
-    float y;
+    double x;
+    double y;
     char c = string[i];
     Serial.println((String)"Angles for character " + c);
     int asciiVal = (int) c;
@@ -66,39 +65,47 @@ void loop()
       x = alphabet[asciiVal].x;
       y = alphabet[asciiVal].y;
     }
+
+
+    double servo1Angel = calc_servo1(x, y, arm1length, arm2length);
+    double servo2Angel = calc_servo2(x, y, arm1length, arm2length);
     
-    double servo2Angle = calc_servo2_angle(x, y, arm1length, arm2length);
-    Serial.println((String)"Servo2Angle: " + servo2Angle);
-    //Servo2.write(servo2Angle)
-    double servo1Angle = calc_servo1_angle(x, y, arm1length, arm2length);
-    Serial.println((String)"Servo1Angle: " + servo1Angle);
+    Serial.println((String)"Servo1Angle: " + servo1Angel);
     //Servo1.write(servo1Angle)
+    Serial.println((String)"Servo2Angle: " + servo2Angel);
+    //Servo2.write(servo2Angle)
+    
+
     delay(1000);
   }
   Serial.println("\t");
 }
 
-double calc_q2(float x, float y, float arm1length, float arm2length){
-  double upper = (pow(abs(x), 2) + pow(y, 2) - pow(arm1length, 2) - pow(arm2length, 2));
-  double lower = 2*arm1length*arm2length;
-  double result = (acos(upper/lower)*180)/PI;
-  return result;
+
+//returns 2 angles in degrees for servos
+//based on https://automaticaddison.com/how-to-do-the-graphical-approach-to-inverse-kinematics/
+double calc_servo1(double x, double y, double arm1length, double arm2length){
+    double r = sqrt(pow(x, 2) + pow(y, 2));
+    double upper = (pow(arm2length, 2) - pow(r, 2) - pow(arm1length, 2));
+    double lower = -2*r*arm1length;
+    double phi1 = acos(upper/lower);
+    double phi2 = atan2(y,x);
+
+    double theta1 = PI - (phi2 - phi1);
+    
+    theta1 = theta1 * RAD_TO_DEG; // Joint 1
+
+    return theta1;
+}
+
+double calc_servo2(double x, double y, double arm1length, double arm2length){    
+    double r = sqrt(pow(x, 2) + pow(y, 2));
+    double phi3 = acos((pow(r, 2) - pow(arm1length, 2) - pow(arm2length, 2))/(-2.0 * arm1length * arm2length));
+    double theta2 = phi3;
+    
+    theta2 = theta2 * RAD_TO_DEG; // Joint 2
+    
+    return theta2;
 }
 
 //https://robotacademy.net.au/lesson/inverse-kinematics-for-a-2-joint-robot-arm-using-geometry/
-double calc_servo2_angle(float x, float y, float arm1length, float arm2length){
-  double q2 = calc_q2(x, y, arm1length, arm2length);
-  return 180 - q2;
-}
-
-double calc_servo1_angle(float x, float y, float arm1length, float arm2length){
-  double q2 = calc_q2(x, y, arm1length, arm2length);
-  double temp = ((arm2length*(sin(q2)*180)/PI))/((arm1length+arm2length)*((cos(q2)*180)/PI));
-
-  //Serial.println(q2);
-  //Serial.println(temp);
-  
-  double q1 = ((atan(y/x)*180)/PI) - ((atan(temp)*180)/PI);
-  //Serial.println(q1);
-  return abs(q1);
-}
