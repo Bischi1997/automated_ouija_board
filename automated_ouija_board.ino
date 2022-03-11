@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <SoftwareSerial.h>
-#include <DFRobotDFPlayerMini.h>
+//#include <DFRobotDFPlayerMini.h>
 #include <Servo.h>
 
 
@@ -9,9 +9,9 @@ Servo servo_arm;
 
 void setup() 
 {
-  Serial.begin(115200);
-  servo_base.attach(D0);
-  servo_arm.attach(D3);
+  Serial.begin(9600);
+  //servo_base.attach(D0);
+  //servo_arm.attach(D3);
 }
 
 void loop() 
@@ -76,13 +76,13 @@ void loop()
     }
 
 
-    double servo1Angel = calc_servo1(x, y, arm1length, arm2length);
-    double servo2Angel = calc_servo2(x, y, arm1length, arm2length);
+    int servo1Angel = calc_servo1(x, y, arm1length, arm2length);
+    int servo2Angel = calc_servo2(x, y, arm1length, arm2length);
     
     Serial.println((String)"Servo1Angle: " + servo1Angel);
-    servo_base.write(servo1Angel);
+    //servo_base.write(servo1Angel);
     Serial.println((String)"Servo2Angle: " + servo2Angel);
-    servo_arm.write(servo2Angel);
+    //servo_arm.write(servo2Angel);
     
 
     delay(1000);
@@ -93,7 +93,7 @@ void loop()
 
 //returns 2 angles in degrees for servos
 //based on https://automaticaddison.com/how-to-do-the-graphical-approach-to-inverse-kinematics/
-double calc_servo1(double x, double y, double arm1length, double arm2length){
+int calc_servo1(double x, double y, double arm1length, double arm2length){
     double r = sqrt(pow(x, 2) + pow(y, 2));
     double upper = (pow(arm2length, 2) - pow(r, 2) - pow(arm1length, 2));
     double lower = -2*r*arm1length;
@@ -104,17 +104,24 @@ double calc_servo1(double x, double y, double arm1length, double arm2length){
     
     theta1 = theta1 * RAD_TO_DEG; // Joint 1
 
-    return theta1;
+    return (int) round(theta1);
 }
 
-double calc_servo2(double x, double y, double arm1length, double arm2length){    
+int calc_servo2(double x, double y, double arm1length, double arm2length){    
     double r = sqrt(pow(x, 2) + pow(y, 2));
     double phi3 = acos((pow(r, 2) - pow(arm1length, 2) - pow(arm2length, 2))/(-2.0 * arm1length * arm2length));
     double theta2 = PI - phi3;
-    
+
     theta2 = theta2 * RAD_TO_DEG; // Joint 2
+    theta2 = calc_servo_1_angle(theta2);
     
-    return theta2;
+    return (int) round(theta2);
+}
+
+double calc_servo_1_angle (double input_angle) {
+  int result;
+  result = map(input_angle, -90, 90, 0, 180);
+  return result;
 }
 
 //https://robotacademy.net.au/lesson/inverse-kinematics-for-a-2-joint-robot-arm-using-geometry/
