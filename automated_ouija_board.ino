@@ -1,8 +1,17 @@
+#include <Arduino.h>
+#include <SoftwareSerial.h>
+#include <DFRobotDFPlayerMini.h>
+#include <Servo.h>
+
+
+Servo servo_base;   //give a name to the servo
+Servo servo_arm;
+
 void setup() 
 {
-  Serial.begin(9600);
-  //servo1.attach(8);
-  //servo2.attach(7);
+  Serial.begin(115200);
+  servo_base.attach(D0);
+  servo_arm.attach(D3);
 }
 
 void loop() 
@@ -48,7 +57,7 @@ void loop()
   const float arm1length = 49.2; // in mm
   const float arm2length = 36.0; // in mm
   const char string[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
+  //ABCDEFGHIJKLMNOPQRSTUVWXYZ
   for(int i =0; i < strlen(string); i++ ) {
     double x;
     double y;
@@ -71,9 +80,9 @@ void loop()
     double servo2Angel = calc_servo2(x, y, arm1length, arm2length);
     
     Serial.println((String)"Servo1Angle: " + servo1Angel);
-    //Servo1.write(servo1Angle)
+    servo_base.write(servo1Angel);
     Serial.println((String)"Servo2Angle: " + servo2Angel);
-    //Servo2.write(servo2Angle)
+    servo_arm.write(servo2Angel);
     
 
     delay(1000);
@@ -91,7 +100,7 @@ double calc_servo1(double x, double y, double arm1length, double arm2length){
     double phi1 = acos(upper/lower);
     double phi2 = atan2(y,x);
 
-    double theta1 = PI - (phi2 - phi1);
+    double theta1 = (phi2 - phi1);
     
     theta1 = theta1 * RAD_TO_DEG; // Joint 1
 
@@ -101,7 +110,7 @@ double calc_servo1(double x, double y, double arm1length, double arm2length){
 double calc_servo2(double x, double y, double arm1length, double arm2length){    
     double r = sqrt(pow(x, 2) + pow(y, 2));
     double phi3 = acos((pow(r, 2) - pow(arm1length, 2) - pow(arm2length, 2))/(-2.0 * arm1length * arm2length));
-    double theta2 = phi3;
+    double theta2 = PI - phi3;
     
     theta2 = theta2 * RAD_TO_DEG; // Joint 2
     
