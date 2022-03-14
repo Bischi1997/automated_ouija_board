@@ -53,8 +53,8 @@ void setup(){
 
   //Servos Anbinden
   Serial.begin(115200);
-  servo_base.attach(D0);
-  servo_arm.attach(D3);
+  servo_base.attach(D5, 544, 2400);
+  servo_arm.attach(D3, 544, 2400);
 
 
   //Verbindung zu Audioplayer prüfen
@@ -221,15 +221,17 @@ void loop()
     {"v", 31.50, 56.00},
     {"w", 45.50, 45.00},
     {"x", -14.00, 41.50},
-    {"y", 0.50, 44.00},
-    {"z", 14.50, 41.50},
+    //{"y", 0.50, 44.00},
+    //{"z", 14.50, 41.50},
     {"yes", -20.00, 20.00},
-    {"no", 22.00, 20.00}
+    {"no", 22.00, 20.00},
+    {"z", -35.00, 49.5},
+    {"y", 0.00, 14.5}
   };
   
-  const float arm1length = 49.2; // in mm
-  const float arm2length = 36.0; // in mm
-  const char string[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const float arm1length = 49.5; // in mm
+  const float arm2length = 35.0; // in mm
+  const char string[] = "zy";
   //ABCDEFGHIJKLMNOPQRSTUVWXYZ
   for(int i =0; i < strlen(string); i++ ) {
     double x;
@@ -258,7 +260,7 @@ void loop()
     servo_arm.write(servo2Angel);
     
 
-    delay(1000);
+    delay(3000);
   }
   Serial.println("\t");
 }
@@ -293,7 +295,7 @@ int calc_servo2(double x, double y, double arm1length, double arm2length){
 
 double calc_servo_1_angle (double input_angle) {
   int result;
-  result = map(input_angle, 0, 180, 180, 0);
+  result = map(input_angle, -90, 90, 0, 180);
   return result;
 }
 
