@@ -271,7 +271,7 @@ int calc_servo1(double x, double y, double arm1length, double arm2length){
     double phi1 = acos(upper/lower);
     double phi2 = atan2(y,x);
 
-    double theta1 = (phi2 - phi1);
+    double theta1 = PI - (phi2 - phi1);
     
     theta1 = theta1 * RAD_TO_DEG; // Joint 1
 
