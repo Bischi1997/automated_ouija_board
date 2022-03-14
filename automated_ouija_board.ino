@@ -4,8 +4,8 @@
 #include <DFRobotDFPlayerMini.h>
 #include <Servo.h>
 #include <ESP8266WiFi.h>
-#include <ESPAsyncTCP.h>
 #include <ESPAsyncWebServer.h>
+#include <ESPAsyncTCP.h>
 
 //give a name to the servo
 Servo servo_base;   
@@ -16,12 +16,36 @@ SoftwareSerial mySoftwareSerial(D2, D1); // RX, TX
 DFRobotDFPlayerMini myDFPlayer;
 void printDetail(uint8_t type, int value);
 
-// Daten des WiFi-Netzwerks
-const char* ssid     = "Simon";
+
+// Replace with your network credentials
+const char* ssid = "Simon";
 const char* password = "qwe12345";
 
-// Create AsyncWebServer object on port 80
+
+// Define a web server at port 80 for HTTP
 AsyncWebServer server(80);
+
+
+const char* PARAM_INPUT_1 = "input1";
+
+// HTML web page to handle 1 input fields (input1, input2, input3)
+//https://randomnerdtutorials.com/esp32-esp8266-input-data-html-form/
+const char index_html[] PROGMEM = R"rawliteral(
+<!DOCTYPE HTML><html><head>
+  <title>ESP Input Form</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  </head><body>
+  <form action="/get">
+    input1: <input type="text" name="input1">
+    <input type="submit" value="Submit">
+  </form><br>
+</body></html>)rawliteral";
+
+
+void notFound(AsyncWebServerRequest *request) {
+  request->send(404, "text/plain", "Not found");
+}
+
 
 
 
@@ -52,40 +76,45 @@ void setup(){
 
 
 
-  // Initialize SPIFFS
-  //https://randomnerdtutorials.com/install-esp8266-filesystem-uploader-arduino-ide/
-  if(!SPIFFS.begin()){
-    Serial.println("An Error has occurred while mounting SPIFFS");
-    return;
-  }
-
   // Connect to Wi-Fi
-  Serial.print("Connecting to WiFi");
+  WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
+    delay(1000);
+    Serial.println("Connecting to WiFi..");
   }
-  // Lokale IP-Adresse im Seriellen Monitor ausgeben und Server starten
-  Serial.println("");
-  Serial.println("WiFi connected");
-  Serial.println("IP address: ");
+
+  // Print ESP32 Local IP Address
+  Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
-  server.begin();
 
-  // Route for root / web page
-  //https://randomnerdtutorials.com/esp8266-web-server-spiffs-nodemcu/
-  //https://randomnerdtutorials.com/esp8266-nodemcu-async-web-server-espasyncwebserver-library/
+  // Send web page with input fields to client
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/index.html", String(), false);
+    request->send_P(200, "text/html", index_html);
   });
-  // Route to load style.css file
-  server.on("/style.css", HTTP_GET, [](AsyncWebServerRequest *request){
-    request->send(SPIFFS, "/style.css", "text/css");
+  
+  // Send a GET request to <ESP_IP>/get?input1=<inputMessage>
+  server.on("/get", HTTP_GET, [] (AsyncWebServerRequest *request) {
+    String inputMessage;
+    String inputParam;
+    // GET input1 value on <ESP_IP>/get?input1=<inputMessage>
+    if (request->hasParam(PARAM_INPUT_1)) {
+      inputMessage = request->getParam(PARAM_INPUT_1)->value();
+      inputParam = PARAM_INPUT_1;
+    }
+    else {
+      inputMessage = "No message sent";
+      inputParam = "none";
+    }
+    Serial.println(inputMessage);
+    request->send(200, "text/html", "HTTP GET request sent to your ESP on input field (" 
+                                     + inputParam + ") with value: " + inputMessage +
+                                     "<br><a href=\"/\">Return to Home Page</a>");
   });
 
-  // Start server
+  server.onNotFound(notFound);
   server.begin();
+
 
 }
 
@@ -150,11 +179,12 @@ switch (type) {
 void loop() 
 {
 
+
   if (myDFPlayer.available()) {
       printDetail(myDFPlayer.readType(), myDFPlayer.read()); //Print the detail message from DFPlayer to handle different errors and states.
     };
 
-
+  
 
 
   struct PositionStruct {
@@ -197,7 +227,7 @@ void loop()
   
   const float arm1length = 49.2; // in mm
   const float arm2length = 36.0; // in mm
-  const char string[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+  const char string[] = "ABC";
   //ABCDEFGHIJKLMNOPQRSTUVWXYZ
   for(int i =0; i < strlen(string); i++ ) {
     double x;
