@@ -18,8 +18,8 @@ void printDetail(uint8_t type, int value);
 
 
 // Replace with your network credentials
-const char* ssid = "Simon";
-const char* password = "qwe12345";
+const char* ssid = "ouijaboard";
+const char* password = "123456789";
 
 
 // Define a web server at port 80 for HTTP
@@ -76,14 +76,8 @@ void setup(){
 
 
 
-  // Connect to Wi-Fi
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(1000);
-    Serial.println("Connecting to WiFi..");
-  }
-
+  //Create Wi-Fi Hotspot
+  WiFi.softAP(ssid, password);
   // Print ESP32 Local IP Address
   Serial.print("IP Address: ");
   Serial.println(WiFi.localIP());
@@ -178,7 +172,6 @@ switch (type) {
 
 void loop() 
 {
-
 
   if (myDFPlayer.available()) {
       printDetail(myDFPlayer.readType(), myDFPlayer.read()); //Print the detail message from DFPlayer to handle different errors and states.
@@ -291,8 +284,6 @@ int calc_servo2(double x, double y, double arm1length, double arm2length){
 
 double calc_servo_1_angle (double input_angle) {
   int result;
-  result = map(input_angle, 0, 180, 180, 0);
+  result = map(input_angle, -90, 90, 0, 180);
   return result;
 }
-
-
