@@ -56,6 +56,7 @@ void setup(){
   servo_base.attach(D0);
   servo_arm.attach(D3);
 
+
   //Verbindung zu Audioplayer prüfen
   mySoftwareSerial.begin(9600);
   
@@ -172,6 +173,7 @@ switch (type) {
   default:
     break;
 }
+
 }
 
 
@@ -227,7 +229,7 @@ void loop()
   
   const float arm1length = 49.2; // in mm
   const float arm2length = 36.0; // in mm
-  const char string[] = "ABC";
+  const char string[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   //ABCDEFGHIJKLMNOPQRSTUVWXYZ
   for(int i =0; i < strlen(string); i++ ) {
     double x;
