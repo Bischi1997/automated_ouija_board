@@ -59,8 +59,8 @@ void setup(){
 
   //Servos Anbinden
   Serial.begin(115200);
-  servo_base.attach(D0);
-  servo_arm.attach(D3);
+  servo_base.attach(D0,544,2400);
+  servo_arm.attach(D3,544,2400);
   fabrik2D.setTolerance(0.5);
 
 
@@ -199,6 +199,7 @@ void loop()
     {"m", 59.50, 59.00},
     {"n", 70.50, 46.00},
     {"o", 77.50, 32.50},
+    //{"p", -36, 49.00},
     {"p", -48.00, 42.00},
     {"q", -37.00, 52.00},
     {"r", -24.50, 59.00},
@@ -210,8 +211,8 @@ void loop()
     {"x", -14.00, 41.50},
     {"y", 0.50, 44.00},
     {"z", 14.50, 41.50},
-    {"yes", -20.00, 20.00},
-    {"no", 22.00, 20.00}
+    //{"yes", -20.00, 20.00},
+    //{"no", 22.00, 20.00}
   };
   
 
@@ -237,17 +238,20 @@ void loop()
     fabrik2D.solve(x,y,lengths);
     
     int servo1Angle = 180 - (fabrik2D.getAngle(0) * RAD_TO_DEG); // In degrees
+    Serial.println((String)"vor Begrenzung S1 " +servo1Angle);
     int servo2Angle = 180 - (fabrik2D.getAngle(1) * RAD_TO_DEG); // In degrees
+    Serial.println((String)"vor Begrenzung S2 " +servo2Angle);
 
     servo1Angle = min(180, max(0, servo1Angle));
     servo2Angle = min(180, max(0, servo2Angle));
-    
+
+    //Serial.println((String)"Angles for character " + c);
     Serial.println((String)"Servo1Angle: " + servo1Angle);
     servo_base.write(servo1Angle);
     Serial.println((String)"Servo2Angle: " + servo2Angle);
     servo_arm.write(servo2Angle);
     
-    delay(1000);
+    delay(2000);
   }
   Serial.println("\t");
 }
