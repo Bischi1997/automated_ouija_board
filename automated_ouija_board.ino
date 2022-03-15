@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include <SoftwareSerial.h>
 #include <DFRobotDFPlayerMini.h>
+#include <FABRIK2D.h>
 #include <Servo.h>
 #include <ESP8266WiFi.h>
 #include <ESPAsyncWebServer.h>
@@ -11,10 +12,18 @@
 Servo servo_base;   
 Servo servo_arm;
 
+struct PositionStruct {
+  String character;
+  float x;
+  float y;
+};
+
+
+
 //Softwareserial für Audio Player
-SoftwareSerial mySoftwareSerial(D2, D1); // RX, TX
-DFRobotDFPlayerMini myDFPlayer;
-void printDetail(uint8_t type, int value);
+//SoftwareSerial mySoftwareSerial(D2, D1); // RX, TX
+//DFRobotDFPlayerMini myDFPlayer;
+//void printDetail(uint8_t type, int value);
 
 
 // Replace with your network credentials
@@ -46,7 +55,8 @@ void notFound(AsyncWebServerRequest *request) {
   request->send(404, "text/plain", "Not found");
 }
 
-
+const float lengths[] = {49.2, 36.0}; // in mm
+Fabrik2D fabrik2D(2, lengths);
 
 
 void setup(){
@@ -55,32 +65,31 @@ void setup(){
   Serial.begin(115200);
   servo_base.attach(D0);
   servo_arm.attach(D3);
+  fabrik2D.setTolerance(0.5);
+
 
   //Verbindung zu Audioplayer prüfen
-  mySoftwareSerial.begin(9600);
-  
-  Serial.println();
-  Serial.println(F("DFRobot DFPlayer Mini Demo"));
-  Serial.println(F("Initializing DFPlayer ... (May take 3~5 seconds)"));
-
-  if (!myDFPlayer.begin(mySoftwareSerial)) {  //Use softwareSerial to communicate with mp3.
-    Serial.println(F("Unable to begin:"));
-    Serial.println(F("1.Please recheck the connection!"));
-    Serial.println(F("2.Please insert the SD card!"));
-    while(true);
-  };
-  Serial.println(F("DFPlayer Mini online."));
-
-  myDFPlayer.volume(30);  //Set volume value. From 0 to 30
-  myDFPlayer.loop(1);  //Play the first mp3
+//  mySoftwareSerial.begin(9600);
+//  
+//  Serial.println();
+//  Serial.println(F("DFRobot DFPlayer Mini Demo"));
+//  Serial.println(F("Initializing DFPlayer ... (May take 3~5 seconds)"));
+//
+//  if (!myDFPlayer.begin(mySoftwareSerial)) {  //Use softwareSerial to communicate with mp3.
+//    Serial.println(F("Unable to begin:"));
+//    Serial.println(F("1.Please recheck the connection!"));
+//    Serial.println(F("2.Please insert the SD card!"));
+//    while(true);
+//  };
+//  Serial.println(F("DFPlayer Mini online."));
+//
+//  myDFPlayer.volume(30);  //Set volume value. From 0 to 30
+//  myDFPlayer.loop(1);  //Play the first mp3
 
 
 
   //Create Wi-Fi Hotspot
   WiFi.softAP(ssid, password);
-  // Print ESP32 Local IP Address
-  Serial.print("IP Address: ");
-  Serial.println(WiFi.localIP());
 
   // Send web page with input fields to client
   server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
@@ -113,79 +122,70 @@ void setup(){
 }
 
 //Meldungen von Audioplayer ausgeben
-void printDetail(uint8_t type, int value){
-switch (type) {
-  case TimeOut:
-    Serial.println(F("Time Out!"));
-    break;
-  case WrongStack:
-    Serial.println(F("Stack Wrong!"));
-    break;
-  case DFPlayerCardInserted:
-    Serial.println(F("Card Inserted!"));
-    break;
-  case DFPlayerCardRemoved:
-    Serial.println(F("Card Removed!"));
-    break;
-  case DFPlayerCardOnline:
-    Serial.println(F("Card Online!"));
-    break;
-  case DFPlayerPlayFinished:
-    Serial.print(F("Number:"));
-    Serial.print(value);
-    Serial.println(F(" Play Finished!"));
-    break;
-  case DFPlayerError:
-    Serial.print(F("DFPlayerError:"));
-    switch (value) {
-      case Busy:
-        Serial.println(F("Card not found"));
-        break;
-      case Sleeping:
-        Serial.println(F("Sleeping"));
-        break;
-      case SerialWrongStack:
-        Serial.println(F("Get Wrong Stack"));
-        break;
-      case CheckSumNotMatch:
-        Serial.println(F("Check Sum Not Match"));
-        break;
-      case FileIndexOut:
-        Serial.println(F("File Index Out of Bound"));
-        break;
-      case FileMismatch:
-        Serial.println(F("Cannot Find File"));
-        break;
-      case Advertise:
-        Serial.println(F("In Advertise"));
-        break;
-      default:
-        break;
-    }
-    break;
-  default:
-    break;
-}
-}
+//void printDetail(uint8_t type, int value){
+//switch (type) {
+//  case TimeOut:
+//    Serial.println(F("Time Out!"));
+//    break;
+//  case WrongStack:
+//    Serial.println(F("Stack Wrong!"));
+//    break;
+//  case DFPlayerCardInserted:
+//    Serial.println(F("Card Inserted!"));
+//    break;
+//  case DFPlayerCardRemoved:
+//    Serial.println(F("Card Removed!"));
+//    break;
+//  case DFPlayerCardOnline:
+//    Serial.println(F("Card Online!"));
+//    break;
+//  case DFPlayerPlayFinished:
+//    Serial.print(F("Number:"));
+//    Serial.print(value);
+//    Serial.println(F(" Play Finished!"));
+//    break;
+//  case DFPlayerError:
+//    Serial.print(F("DFPlayerError:"));
+//    switch (value) {
+//      case Busy:
+//        Serial.println(F("Card not found"));
+//        break;
+//      case Sleeping:
+//        Serial.println(F("Sleeping"));
+//        break;
+//      case SerialWrongStack:
+//        Serial.println(F("Get Wrong Stack"));
+//        break;
+//      case CheckSumNotMatch:
+//        Serial.println(F("Check Sum Not Match"));
+//        break;
+//      case FileIndexOut:
+//        Serial.println(F("File Index Out of Bound"));
+//        break;
+//      case FileMismatch:
+//        Serial.println(F("Cannot Find File"));
+//        break;
+//      case Advertise:
+//        Serial.println(F("In Advertise"));
+//        break;
+//      default:
+//        break;
+//    }
+//    break;
+//  default:
+//    break;
+//}
+//}
 
 
 
 void loop() 
 {
 
-  if (myDFPlayer.available()) {
-      printDetail(myDFPlayer.readType(), myDFPlayer.read()); //Print the detail message from DFPlayer to handle different errors and states.
-    };
+//  if (myDFPlayer.available()) {
+//      printDetail(myDFPlayer.readType(), myDFPlayer.read()); //Print the detail message from DFPlayer to handle different errors and states.
+//    };
 
-  
-
-
-  struct PositionStruct {
-    String character;
-    float x;
-    float y;
-  };
-  
   const PositionStruct alphabet[] = {
     //{char, x, y}
     {"a", -77.50, 32.00},
@@ -218,9 +218,8 @@ void loop()
     {"no", 22.00, 20.00}
   };
   
-  const float arm1length = 49.2; // in mm
-  const float arm2length = 36.0; // in mm
-  const char string[] = "ABC";
+
+  const char string[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   //ABCDEFGHIJKLMNOPQRSTUVWXYZ
   for(int i =0; i < strlen(string); i++ ) {
     double x;
@@ -239,51 +238,18 @@ void loop()
       y = alphabet[asciiVal].y;
     }
 
-
-    int servo1Angel = calc_servo1(x, y, arm1length, arm2length);
-    int servo2Angel = calc_servo2(x, y, arm1length, arm2length);
+    fabrik2D.solve(x,y,lengths);
     
-    Serial.println((String)"Servo1Angle: " + servo1Angel);
-    servo_base.write(servo1Angel);
-    Serial.println((String)"Servo2Angle: " + servo2Angel);
-    servo_arm.write(servo2Angel);
+    int servo1Angle = fabrik2D.getAngle(0) * RAD_TO_DEG; // In degrees
+    int servo2Angle = fabrik2D.getAngle(1) * RAD_TO_DEG; // In degrees
+    
+    Serial.println((String)"Servo1Angle: " + servo1Angle);
+    servo_base.write(servo1Angle);
+    Serial.println((String)"Servo2Angle: " + servo2Angle);
+    servo_arm.write(servo2Angle);
     
 
     delay(1000);
   }
   Serial.println("\t");
-}
-
-
-//returns 2 angles in degrees for servos
-//based on https://automaticaddison.com/how-to-do-the-graphical-approach-to-inverse-kinematics/
-int calc_servo1(double x, double y, double arm1length, double arm2length){
-    double r = sqrt(pow(x, 2) + pow(y, 2));
-    double upper = (pow(arm2length, 2) - pow(r, 2) - pow(arm1length, 2));
-    double lower = (-2.0)*r*arm1length;
-    double phi1 = acos(upper/lower);
-    double phi2 = atan2(y,x);
-
-    double theta1 = PI - (phi2 - phi1);
-    
-    theta1 = theta1 * RAD_TO_DEG; // Joint 1
-
-    return (int) round(theta1);
-}
-
-int calc_servo2(double x, double y, double arm1length, double arm2length){    
-    double r = sqrt(pow(x, 2) + pow(y, 2));
-    double phi3 = acos((pow(r, 2) - pow(arm1length, 2) - pow(arm2length, 2))/((-2.0) * arm1length * arm2length));
-    double theta2 = PI - phi3;
-
-    theta2 = theta2 * RAD_TO_DEG; // Joint 2
-    theta2 = calc_servo_1_angle(theta2);
-    
-    return (int) round(theta2);
-}
-
-double calc_servo_1_angle (double input_angle) {
-  int result;
-  result = map(input_angle, -90, 90, 0, 180);
-  return result;
 }
