@@ -9,6 +9,8 @@
 #include <ESPAsyncTCP.h>
 
 //give a name to the servo
+int lengths[] = {49, 36}; // in mm
+Fabrik2D fabrik2D(3, lengths);
 Servo servo_base;   
 Servo servo_arm;
 
@@ -17,8 +19,6 @@ struct PositionStruct {
   float x;
   float y;
 };
-
-
 
 //Softwareserial für Audio Player
 //SoftwareSerial mySoftwareSerial(D2, D1); // RX, TX
@@ -54,10 +54,6 @@ const char index_html[] PROGMEM = R"rawliteral(
 void notFound(AsyncWebServerRequest *request) {
   request->send(404, "text/plain", "Not found");
 }
-
-const float lengths[] = {49.2, 36.0}; // in mm
-Fabrik2D fabrik2D(2, lengths);
-
 
 void setup(){
 
@@ -222,8 +218,8 @@ void loop()
   const char string[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   //ABCDEFGHIJKLMNOPQRSTUVWXYZ
   for(int i =0; i < strlen(string); i++ ) {
-    double x;
-    double y;
+    int x;
+    int y;
     char c = string[i];
     Serial.println((String)"Angles for character " + c);
     int asciiVal = (int) c;
@@ -240,15 +236,17 @@ void loop()
 
     fabrik2D.solve(x,y,lengths);
     
-    int servo1Angle = fabrik2D.getAngle(0) * RAD_TO_DEG; // In degrees
-    int servo2Angle = fabrik2D.getAngle(1) * RAD_TO_DEG; // In degrees
+    int servo1Angle = 180 - (fabrik2D.getAngle(0) * RAD_TO_DEG); // In degrees
+    int servo2Angle = 180 - (fabrik2D.getAngle(1) * RAD_TO_DEG); // In degrees
+
+    servo1Angle = min(180, max(0, servo1Angle));
+    servo2Angle = min(180, max(0, servo2Angle));
     
     Serial.println((String)"Servo1Angle: " + servo1Angle);
     servo_base.write(servo1Angle);
     Serial.println((String)"Servo2Angle: " + servo2Angle);
     servo_arm.write(servo2Angle);
     
-
     delay(1000);
   }
   Serial.println("\t");
